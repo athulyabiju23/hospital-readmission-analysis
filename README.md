@@ -3,14 +3,14 @@
 ## Problem Statement
 Medicare penalizes hospitals up to 3% of their total payments if too many patients get readmitted within 30 days of discharge through the Hospital Readmissions Reduction Program (HRRP). This costs hospitals millions of dollars annually.
 
-I analyzed 3 real CMS government datasets covering 3,055 hospitals to find out which hospitals are getting hit the hardest, what conditions drive the most excess readmissions, and whether factors like ownership type and star ratings predict readmission performance — backed by statistical testing, not just averages.
+I analyzed 3 real CMS government datasets covering 3,055 hospitals to find out which hospitals are getting hit the hardest, what conditions drive the most excess readmissions, and whether factors like ownership type and star ratings predict readmission performance — backed by statistical testing and predictive modeling.
 
 ## Key Findings (TL;DR)
 - **For-profit hospitals have significantly worse readmission rates** than non-profits (ERR 1.0174 vs 0.9984, t-test p ≈ 0)
 - **Star rating strongly predicts readmission performance** (Spearman r = -0.22, p < 0.001) — 1-star hospitals avg ERR ~1.04, 5-star hospitals ~0.97
 - **Hip/Knee replacement** unexpectedly had the highest avg ERR despite being an elective procedure
 - **~48% of hospitals** exceed expected readmission rates for any given condition
-- Some hospitals are failing on **all 6 measured conditions** simultaneously
+- A **logistic regression model** predicts excess readmissions with 63.5% accuracy (AUC 0.709) using only hospital characteristics — star rating is the strongest predictor
 
 ## Data Sources
 All data from [data.cms.gov](https://data.cms.gov) — real government data, not synthetic.
@@ -35,7 +35,15 @@ All data from [data.cms.gov](https://data.cms.gov) — real government data, not
 - **T-test** to verify the for-profit vs non-profit difference is statistically significant
 - **Pearson and Spearman correlations** for star rating vs ERR and hospital size vs ERR
 - Identified "worst offender" hospitals failing on 4+ conditions
-- 8 visualizations with consistent styling
+- 11 visualizations with consistent styling
+
+### Predictive Modeling — Logistic Regression
+- Built a logistic regression to predict whether a hospital will have excess readmissions (ERR > 1.0)
+- Features: star rating, total discharges, number of conditions measured, ownership type
+- Trained on 1,870 hospitals, tested on 624
+- **Results: 63.5% accuracy, AUC-ROC 0.709**
+- Star rating was the strongest predictor (coefficient: -0.744), followed by non-profit ownership (-0.262)
+- The model confirms that hospital characteristics independently predict readmission performance, not just correlate with it
 
 ## Visualizations
 
@@ -63,6 +71,15 @@ All data from [data.cms.gov](https://data.cms.gov) — real government data, not
 ### Hospital Size vs Readmission Performance
 ![Size vs ERR](charts/08_size_vs_err.png)
 
+### Predictive Model — Confusion Matrix
+![Confusion Matrix](charts/09_confusion_matrix.png)
+
+### Predictive Model — ROC Curve
+![ROC Curve](charts/10_roc_curve.png)
+
+### Predictive Model — Feature Importance
+![Feature Importance](charts/11_feature_importance.png)
+
 ## How to Run
 
 ```bash
@@ -74,8 +91,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # download the 3 CSVs from data.cms.gov and put them in data/raw/
+
+# run main analysis first (creates the SQLite database)
 jupyter notebook hospital_readmission_analysis.ipynb
-# run all cells
+
+# then run predictive modeling
+jupyter notebook predictive_analysis.ipynb
 ```
 
 ## Project Structure
@@ -89,7 +110,8 @@ hospital-readmission-analysis/
 │   ├── 02_clean_data.sql        # handling messy CMS values
 │   └── 03_join_and_analysis.sql # joins + analysis queries
 ├── charts/                      # all generated visualizations
-├── hospital_readmission_analysis.ipynb
+├── hospital_readmission_analysis.ipynb   # main analysis
+├── predictive_analysis.ipynb             # logistic regression
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -97,8 +119,8 @@ hospital-readmission-analysis/
 
 ## Tools Used
 - **SQL** (SQLite) — data cleaning, joins, aggregations
-- **Python** (pandas, matplotlib, seaborn, scipy) — analysis, statistical testing, visualization
+- **Python** (pandas, matplotlib, seaborn, scipy, scikit-learn) — analysis, statistical testing, predictive modeling, visualization
 
 ## What I'd Improve
-- Run a logistic regression to predict which hospital characteristics best predict excess readmissions
 - Add year-over-year trend analysis — are the same hospitals getting penalized repeatedly?
+- Include patient demographic data (poverty rates, insurance mix) as additional features in the predictive model
