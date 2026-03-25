@@ -1,6 +1,6 @@
--- joining all 3 tables and running analysis
+-- joining tables and running the actual analysis
 
--- master table: hospital info + HRRP penalty data
+-- master table
 DROP TABLE IF EXISTS master_hospital;
 CREATE TABLE master_hospital AS
 SELECT 
@@ -21,7 +21,7 @@ SELECT
 FROM clean_hospital_info h
 INNER JOIN clean_hrrp p ON h.[Facility ID] = p.[Facility ID];
 
--- which conditions have the highest excess readmissions?
+-- avg ERR by condition
 SELECT condition,
        COUNT(*) as hospitals_with_data,
        ROUND(AVG(excess_readmission_ratio), 4) as avg_err,
@@ -32,28 +32,26 @@ WHERE excess_readmission_ratio IS NOT NULL
 GROUP BY condition
 ORDER BY avg_err DESC;
 
--- for-profit vs non-profit vs government
+-- ownership comparison
 SELECT ownership_category,
        COUNT(DISTINCT [Facility ID]) as num_hospitals,
-       ROUND(AVG(excess_readmission_ratio), 4) as avg_err,
-       SUM(CASE WHEN excess_readmission_ratio > 1.0 THEN 1 ELSE 0 END) as excess_count
+       ROUND(AVG(excess_readmission_ratio), 4) as avg_err
 FROM master_hospital
 WHERE excess_readmission_ratio IS NOT NULL
 GROUP BY ownership_category
 ORDER BY avg_err DESC;
 
--- star rating vs readmission performance
+-- star rating vs ERR
 SELECT overall_rating,
        COUNT(DISTINCT [Facility ID]) as num_hospitals,
-       ROUND(AVG(excess_readmission_ratio), 4) as avg_err,
-       SUM(CASE WHEN excess_readmission_ratio > 1.0 THEN 1 ELSE 0 END) as excess_count
+       ROUND(AVG(excess_readmission_ratio), 4) as avg_err
 FROM master_hospital
 WHERE overall_rating IS NOT NULL
   AND excess_readmission_ratio IS NOT NULL
 GROUP BY overall_rating
 ORDER BY overall_rating;
 
--- worst offenders: hospitals failing on 4+ conditions
+-- worst offenders (failing 4+ conditions)
 SELECT [Facility ID], 
        [Facility Name], 
        State, 
@@ -67,3 +65,12 @@ WHERE excess_readmission_ratio IS NOT NULL
 GROUP BY [Facility ID], [Facility Name], State, ownership_category, overall_rating
 HAVING conditions_above_expected >= 4
 ORDER BY conditions_above_expected DESC, avg_err DESC;
+
+-- state level analysis
+SELECT State,
+       COUNT(DISTINCT [Facility ID]) as num_hospitals,
+       ROUND(AVG(excess_readmission_ratio), 4) as avg_err
+FROM master_hospital
+WHERE excess_readmission_ratio IS NOT NULL
+GROUP BY State
+ORDER BY avg_err DESC;
