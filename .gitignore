@@ -1,8 +1,7 @@
-# create .gitignore first
-echo "venv/
+hospvenv/
 data/raw/*.csv
 data/processed/
 __pycache__/
 .ipynb_checkpoints/
 *.db
-.DS_Store" > .gitignore
+.DS_Store
