@@ -1,7 +1,9 @@
 # Hospital Readmission Penalties: Who's Losing Money and Why?
 
 ## Problem Statement
-Medicare penalizes hospitals up to 3% of their payments if too many patients get readmitted within 30 days of discharge. This is through the Hospital Readmissions Reduction Program (HRRP). I wanted to figure out which hospitals are getting hit the hardest, what conditions drive the most penalties, and whether things like ownership type or star ratings make a difference.
+Medicare penalizes hospitals up to 3% of their payments if too many patients get readmitted within 30 days of discharge through the Hospital Readmissions Reduction Program (HRRP). I analyzed real CMS government data to figure out which hospitals are getting hit the hardest, what conditions drive the most penalties, and whether things like ownership type or star ratings make a difference.
+
+If a hospital administrator looked at this analysis, they'd know which conditions to prioritize for improvement, whether their ownership type puts them at higher risk, and how their star rating relates to readmission performance.
 
 ## Data Sources
 All data downloaded from [data.cms.gov](https://data.cms.gov) — real government data, not synthetic.

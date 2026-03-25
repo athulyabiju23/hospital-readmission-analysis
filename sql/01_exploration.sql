@@ -1,31 +1,26 @@
 -- data exploration queries
 -- checking whats in each table and finding messy values
 
--- what measure types are in unplanned visits file?
 SELECT [Measure ID], COUNT(*) as cnt 
 FROM raw_unplanned_visits 
 GROUP BY [Measure ID];
 
--- null ERR values in HRRP
 SELECT [Excess Readmission Ratio], COUNT(*) as cnt
 FROM raw_hrrp
 WHERE [Excess Readmission Ratio] IS NULL 
 GROUP BY [Excess Readmission Ratio];
 
--- messy scores in unplanned visits
 SELECT Score, COUNT(*) as cnt
 FROM raw_unplanned_visits
 WHERE Score = 'Not Available' OR Score IS NULL
 GROUP BY Score;
 
--- hospital counts across tables
 SELECT 'hospital_info' as tbl, COUNT(DISTINCT [Facility ID]) as cnt FROM raw_hospital_info
 UNION ALL
 SELECT 'hrrp', COUNT(DISTINCT [Facility ID]) FROM raw_hrrp
 UNION ALL
 SELECT 'unplanned_visits', COUNT(DISTINCT [Facility ID]) FROM raw_unplanned_visits;
 
--- usable data per readmission measure
 SELECT [Measure ID],
        COUNT(*) as total,
        SUM(CASE WHEN Score != 'Not Available' AND Score IS NOT NULL THEN 1 ELSE 0 END) as has_data,
